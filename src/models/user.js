@@ -60,13 +60,13 @@ const userSchema=mongoose.Schema({
     timestamps:true,
 });
 userSchema.index({firstName:1,lastName:1});
-userSchema.methods.getJWT=async function(){
-    const user=this;
-const token=await jwt.sign({_id:user.id},"DevTinder",{
-                expiresIn:"1d",
-            });
-            return token;
-}
+userSchema.methods.getJWT = async function () {
+    const user = this;
+    const token = await jwt.sign({ _id: user.id }, process.env.JWT_SECRET || "DevTinder", {
+        expiresIn: "1d",
+    });
+    return token;
+};
 userSchema.methods.validPassword=async function(password){
     const user=this;
     const isPasswordValid=await bcrypt.compare(password,user.password)

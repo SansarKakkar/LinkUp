@@ -2,22 +2,28 @@ const express=require('express');
 const {Chat}=require('../models/chat');
 const {userAuth}=require('../middleware/auth');
 const chatRouter=express.Router();
-chatRouter.get("/chat/:targetUserId",userAuth,async(req,res)=>{
-    const {targetUserId}=req.params;
-    const userId=req.user._id;
-    try{
-        let chat = await Chat.findOne({participants:{$all:[userId,targetUserId]},
-        }).populate({ path: 'messages.senderId', select: 'firstName lastName ' });
-        if(!chat){
-            chat=new Chat({
-                participants:[userId,targetUserId],
-                messages:[]
+chatRouter.get("/chat/:targetUserId", userAuth, async (req, res) => {
+    const { targetUserId } = req.params;
+    const userId = req.user._id;
+    try {
+        let chat = await Chat.findOne({
+            participants: { $all: [userId, targetUserId] },
+        })
+        .populate({ path: 'participants', select: 'firstName lastName photoUrl' })
+        .populate({ path: 'messages.senderId', select: 'firstName lastName photoUrl' });
+
+        if (!chat) {
+            chat = new Chat({
+                participants: [userId, targetUserId],
+                messages: []
             });
             await chat.save();
+            chat = await Chat.findById(chat._id)
+                .populate({ path: 'participants', select: 'firstName lastName photoUrl' });
         }
         res.json(chat);
     } catch (error) {
-        console.error('Error creating chat:', error);
+        console.error('Error fetching chat:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });

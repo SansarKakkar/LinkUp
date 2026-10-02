@@ -1,7 +1,8 @@
-const{MongoClient}=require("mongodb")
-const url="mongodb+srv://SansarKakkar_db_user:TCsaPaTmM3NyP3Zr@personaldatabase.ytvvoos.mongodb.net/";
-const client= new MongoClient(url);
-const dbName="SecretDB";
+require('dotenv').config();
+const { MongoClient } = require("mongodb");
+const url = process.env.DB_CONNECTION_SECRET || "mongodb+srv://SansarKakkar_db_user:TCsaPaTmM3NyP3Zr@personaldatabase.ytvvoos.mongodb.net/devtinder";
+const client = new MongoClient(url);
+const dbName = "devtinder";
 async function main() {
   // Use connect method to connect to the server
   await client.connect();

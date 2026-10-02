@@ -23,7 +23,7 @@ const passwordHash=await bcrypt.hash(password,10);
  res.json({data: savedUser});
 }
 catch(err){
-    res.status(404).send(err.message)
+    res.status(400).send(err.message)
 }
 });
 authRouter.post("/login",async (req,res)=>{

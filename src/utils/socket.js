@@ -1,29 +1,30 @@
 const socket = require("socket.io");
-const {Chat } = require("../models/chat");
+const { Chat } = require("../models/chat");
 
 const intializeSocket = (server) => {
-
   const io = socket(server, {
     cors: {
-      origin: "http://localhost:5173",
+      origin: true,
       credentials: true,
-    }
+    },
   });
 
   io.on("connection", (socket) => {
-
     socket.on("joinChat", ({ firstName, userId, targetUserId }) => {
-      const roomId = [userId, targetUserId].sort().join("_");
-      console.log(firstName + " joined room", roomId);
+      if (!userId || !targetUserId) return;
+      const roomId = [String(userId), String(targetUserId)].sort().join("_");
+      console.log(`${firstName || "User"} joined room: ${roomId}`);
       socket.join(roomId);
     });
 
-    socket.on("sendMessage", async ({ firstName, userId, targetUserId, text }) => {
-      const roomId = [userId, targetUserId].sort().join("_");
+    socket.on("sendMessage", async ({ firstName, lastName, userId, targetUserId, text }) => {
+      if (!text || !userId || !targetUserId) return;
+
+      const roomId = [String(userId), String(targetUserId)].sort().join("_");
 
       try {
         let chatDoc = await Chat.findOne({
-          participants: { $all: [userId, targetUserId] }
+          participants: { $all: [userId, targetUserId] },
         });
 
         if (!chatDoc) {
@@ -40,13 +41,25 @@ const intializeSocket = (server) => {
 
         await chatDoc.save();
 
-        io.to(roomId).emit("messageRecieved", { firstName, text });
+        const messageData = {
+          firstName,
+          lastName: lastName || "",
+          text,
+          senderId: userId,
+          createdAt: new Date(),
+        };
+
+        // Emit message to all sockets in room
+        io.to(roomId).emit("messageReceived", messageData);
 
       } catch (err) {
-        console.log(err);
+        console.error("Error saving/sending chat message:", err);
       }
     });
 
+    socket.on("disconnect", () => {
+      // socket disconnected
+    });
   });
 };
 
