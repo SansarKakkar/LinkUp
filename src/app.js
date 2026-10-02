@@ -9,7 +9,9 @@ const http = require("http");
 app.use(express.json())
 app.use(cookieParser());
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin:[ "http://localhost:5173",
+    "https://linkup-web.sansarkakkar07.workers.dev",
+    ],
     credentials: true
 }));
 const { authRouter } = require("./routes/auth");
